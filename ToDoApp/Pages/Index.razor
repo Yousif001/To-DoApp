@@ -9,7 +9,7 @@
 	<ChildContent>
 		@foreach (var item in _sections)
 		{
-			<MudPaper Elevation="0" Width="224px" MinHeight="400px" Class="pa-4 ma-4 d-flex flex-column mud-background-gray rounded-lg">
+			<MudPaper Elevation="0" Width="270px" MinHeight="400px" Class="pa-4 ma-4 d-flex flex-column mud-background-gray rounded-lg">
 				<MudToolBar DisableGutters="true">
 					<MudText Typo="Typo.subtitle1"><b>@item.Name</b></MudText>
 					<MudSpacer />
@@ -62,14 +62,23 @@
 		</MudPaper>
 	</ChildContent>
 	<ItemRenderer>
-		<MudPaper Elevation="25" Class="pa-4 rounded-lg my-3">@context.Name</MudPaper>
+		<MudPaper Elevation="25" Class="pa-1 rounded-lg my-3 d-flex justify-space-between align-center overflow-hidden">
+			<div>
+				<MudCheckBox Size="Size.Small" @bind-Checked="@Basic_CheckBox1">
+					@context.Name
+				</MudCheckBox>
+			</div>
+			<MudIconButton OnClick="() => RemoveTask(context)" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Delete" aria-label="delete"></MudIconButton>
+		</MudPaper>
 	</ItemRenderer>
 </MudDropContainer>
+
 @code {
 	private MudDropContainer<KanbanTaskItem> _dropContainer;
 
 
-
+	
+	public bool Basic_CheckBox1 { get; set; } = false	;
 
 	private bool _addSectionOpen;
 	/* handling board events */
@@ -81,7 +90,7 @@
 	/* Setup for board  */
 	private List<KanBanSections> _sections = new()
 		{ 
-			new KanBanSections("To Do","None",null, false, String.Empty),
+			new KanBanSections("To Do","",null, false, String.Empty),
 		};
 
 	public class KanBanSections
@@ -156,7 +165,13 @@
 		section.NewTaskOpen = false;
 		_dropContainer.Refresh();
 	}
+	private void RemoveTask(KanbanTaskItem task)
+	{
+		_tasks.Remove(task);
+		_dropContainer.Refresh();
 
+		
+	}
 	private void DeleteSection(KanBanSections section)
 	{
 		if (_sections.Count == 1)
