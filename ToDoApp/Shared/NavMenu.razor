@@ -1,0 +1,22 @@
+﻿<MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">My To-Do</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary"> Lets finish some takss!!!</MudText>
+        <MudDivider/>
+        <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        @*<MudNavLink Href="/InProgress">In Progress</MudNavLink>*@
+        <MudNavLink Href="/Completed">completed</MudNavLink>
+    </MudNavMenu>
+</MudPaper>
+
+@code {
+    @*
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }*@
+}
