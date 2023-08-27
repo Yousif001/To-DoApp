@@ -4,7 +4,7 @@
 @using ToDoApp.Services;
 
 @inject KanBanSectionService kanbansectionservice;
-@inject KanbanTaskItemService kanbantaskitemserice;
+@inject KanbanTaskItemService kanbantaskitemservice;
 
 
 <PageTitle>Home</PageTitle>
@@ -141,7 +141,7 @@
 		var task = new KanbanTaskItem(section.NewTaskName, section.Name);
 
 		task.KanBanSectionFK = section.ID;
-		kanbantaskitemserice.AddKanbanTaskItem(task);
+		kanbantaskitemservice.AddKanbanTaskItem(task);
 		dbtaskitems.Add(task);
 		section.NewTaskName = string.Empty;
 		section.NewTaskOpen = false;
@@ -154,7 +154,7 @@
 		_dropContainer.Refresh();
 
 		// Update the database
-		kanbantaskitemserice.RemoveKanbanTaskItem(task.ID);
+		kanbantaskitemservice.RemoveKanbanTaskItem(task.ID);
 
 
 	}
@@ -175,6 +175,7 @@
 
 			dbsectionlist.Remove(section);
 			kanbansectionservice.DeleteKanbanKanBanSection(section.ID);
+			kanbantaskitemservice.EmptySectionTasks(section.ID);
 			var tasks = _tasks.Where(x => x.Status == section.Name);
 			foreach (var item in tasks)
 			{
@@ -187,7 +188,7 @@
 	protected override void OnInitialized()
 	{
 		dbsectionlist = kanbansectionservice.GetAllKanBanSections();
-		dbtaskitems = kanbantaskitemserice.GetAllKanbanTaskItems();
+		dbtaskitems = kanbantaskitemservice.GetAllKanbanTaskItems();
 		base.OnInitialized();
 	}
 }

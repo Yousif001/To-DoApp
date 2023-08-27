@@ -51,6 +51,24 @@ namespace ToDoApp.Services
 			}
 		}
 
-		
+		public void EmptySectionTasks(long sectionId)
+		{
+			using (var context = _dbContextFactory.CreateDbContext())
+			{
+				var tasksToRemove = context.KanbanTaskItems.Where(task => task.KanBanSectionFK == sectionId).ToList();
+
+				if (tasksToRemove.Any())
+				{
+					context.KanbanTaskItems.RemoveRange(tasksToRemove);
+					context.SaveChanges();
+				}
+				else
+				{
+					Console.WriteLine($"No tasks found in section with ID {sectionId}.");
+				}
+			}
+		}
+
+
 	}
 }
