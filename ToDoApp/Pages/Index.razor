@@ -1,13 +1,20 @@
 ﻿@page "/"
+@using Microsoft.EntityFrameworkCore;
+@using ToDoApp.Data.Models;
+@using ToDoApp.Services;
+
+@inject KanBanSectionService kanbansectionservice;
+@inject KanbanTaskItemService kanbantaskitemserice;
+
 
 <PageTitle>Home</PageTitle>
 
 <MudText Class="d-flex justify-center" Typo="Typo.h3 ">Welcome</MudText>
 <br /> 
 
-<MudDropContainer T="KanbanTaskItem" @ref="_dropContainer" Items="@_tasks" ItemsSelector="@((item,column) => item.Status == column)" ItemDropped="TaskUpdated" Class="d-flex flex-row">
+<MudDropContainer T="KanbanTaskItem" @ref="_dropContainer" Items="@dbtaskitems" ItemsSelector="@((taskitem,column) => taskitem.Status == column)" ItemDropped="TaskUpdated" Class="d-flex flex-row">
 	<ChildContent>
-		@foreach (var item in _sections)
+		@foreach (var item in dbsectionlist)
 		{
 			<MudPaper Elevation="0" Width="270px" MinHeight="400px" Class="pa-4 ma-4 d-flex flex-column mud-background-gray rounded-lg">
 				<MudToolBar DisableGutters="true">
@@ -30,14 +37,14 @@
 				{
 					<MudPaper Elevation="25" Class="pa-2 rounded-lg">
 						<MudTextField @bind-Value="item.NewTaskName" Placeholder="New Task" DisableUnderLine="true" Margin="Margin.Dense" Class="mx-2 mt-n2"></MudTextField>
-						<MudButton OnClick="@(() => AddTask(item))" Size="Size.Small" Color="Color.Primary" FullWidth="true">Add Task</MudButton>
+						<MudButton OnClick="@(() => AddTask(item))" Size="Size.Small" Color="Color.Primary" FullWidth="true">Add Task 1</MudButton>
 						
 
 					</MudPaper>
 				}
 				else
 				{
-					<MudButton OnClick="@(() => item.NewTaskOpen = !item.NewTaskOpen)" StartIcon="@Icons.Material.Filled.Add" FullWidth="true" Class="rounded-lg py-2">Add Task</MudButton>
+					<MudButton OnClick="@(() => item.NewTaskOpen = !item.NewTaskOpen)" StartIcon="@Icons.Material.Filled.Add" FullWidth="true" Class="rounded-lg py-2">Add Task 2</MudButton>
 				}
 			</MudPaper>
 		}
@@ -74,10 +81,11 @@
 </MudDropContainer>
 
 @code {
+
+
+
 	private MudDropContainer<KanbanTaskItem> _dropContainer;
 
-
-	
 	public bool Basic_CheckBox1 { get; set; } = false	;
 
 	private bool _addSectionOpen;
@@ -88,112 +96,98 @@
 	}
 
 	/* Setup for board  */
-	private List<KanBanSections> _sections = new()
+	private List<KanBanSection> _sections = new()
 		{ 
-			new KanBanSections("To Do","",null, false, String.Empty),
+			new KanBanSection("To Do","",null, false, String.Empty),
 		};
 
-	public class KanBanSections
-	{
-		public string Name { get; init; }
-		public string? Descirption { get; set; }
-		public DateTime? Date { get; set; }
-		public bool NewTaskOpen { get; set; }
-		public string NewTaskName { get; set; }
 
 
-
-		public KanBanSections(string name, string descirption, DateTime? date, bool newTaskOpen, string newTaskName)
-		{
-			Name = name;
-			NewTaskOpen = newTaskOpen;
-			NewTaskName = newTaskName;
-			Descirption = descirption;
-			Date = date;
-			//date = Date;
-
-		}
-	}
-	public class KanbanTaskItem
-	{
-		public string Name { get; init; }
-		public string Status { get; set; }
-
-		public KanbanTaskItem(string name, string status)
-		{
-			Name = name;
-			Status = status;
-		}
-	}
 
 	private List<KanbanTaskItem> _tasks = new()
-		{
-			new KanbanTaskItem("Write unit test", "To Do"),
-		};
+	{
+		//new KanbanTaskItem("Write unit test", "To Do"),
+		//new KanbanTaskItem("Write code ", "To Do"),
+	};
 
 	KanBanNewForm newSectionModel = new KanBanNewForm();
 
-	public class KanBanNewForm
-	{
-		[Required]
-		[StringLength(10, ErrorMessage = "Name length can't be more than 10.")]
-		public string Name { get; set; }
-		public string Descirption { get; set; }
-		public DateTime?  Date { get; set; }
 
-
-	}
 
 	private void OnValidSectionSubmit(EditContext context)
 	{
-		_sections.Add(new KanBanSections(newSectionModel.Name, newSectionModel.Descirption, newSectionModel.Date, false, String.Empty));
+
+		var section = new KanBanSection(newSectionModel.Name, newSectionModel.Descirption, newSectionModel.Date, false, String.Empty);
+		kanbansectionservice.AddKanBanSection(section);
+		//_sections.Add(new KanBanSection(newSectionModel.Name, newSectionModel.Descirption, newSectionModel.Date, false, String.Empty));
 		newSectionModel.Name = string.Empty;
 		newSectionModel.Descirption = string.Empty;
 		newSectionModel.Date = null;
 		_addSectionOpen = false;
+		dbsectionlist.Add(section);
+		_dropContainer.Refresh();
+
 	}
 
 	private void OpenAddNewSection()
 	{
 		_addSectionOpen = true;
+
 	}
 
-	private void AddTask(KanBanSections section)
+	private void AddTask(KanBanSection section)
 	{
-		_tasks.Add(new KanbanTaskItem(section.NewTaskName, section.Name));
+
+		var task = new KanbanTaskItem(section.NewTaskName, section.Name);
+
+		task.KanBanSectionFK = section.ID;
+		kanbantaskitemserice.AddKanbanTaskItem(task);
+		dbtaskitems.Add(task);
 		section.NewTaskName = string.Empty;
 		section.NewTaskOpen = false;
 		_dropContainer.Refresh();
+
 	}
 	private void RemoveTask(KanbanTaskItem task)
 	{
-		_tasks.Remove(task);
+		dbtaskitems.Remove(task);
 		_dropContainer.Refresh();
 
-		
+		// Update the database
+		kanbantaskitemserice.RemoveKanbanTaskItem(task.ID);
+
+
 	}
-	private void DeleteSection(KanBanSections section)
+	private void DeleteSection(KanBanSection section)
 	{
-		if (_sections.Count == 1)
+		if (dbsectionlist.Count == 1)
 		{
-			_tasks.Clear();
-			_sections.Clear();
+			dbtaskitems.Clear();
+			dbsectionlist.Clear();
 		}
 		else
 		{
-			int newIndex = _sections.IndexOf(section) - 1;
+			int newIndex = dbsectionlist.IndexOf(section) - 1;
 			if (newIndex < 0)
 			{
 				newIndex = 0;
 			}
 
-			_sections.Remove(section);
-
+			dbsectionlist.Remove(section);
+			kanbansectionservice.DeleteKanbanKanBanSection(section.ID);
 			var tasks = _tasks.Where(x => x.Status == section.Name);
 			foreach (var item in tasks)
 			{
-				item.Status = _sections[newIndex].Name;
+				item.Status = dbsectionlist[newIndex].Name;
 			}
 		}
+	}
+	List<KanBanSection> dbsectionlist = new List<KanBanSection>();
+	List<KanbanTaskItem> dbtaskitems = new List<KanbanTaskItem>();
+	protected override void OnInitialized()
+	{
+		dbsectionlist = kanbansectionservice.GetAllKanBanSections();
+		dbtaskitems = kanbantaskitemserice.GetAllKanbanTaskItems();
+		base.OnInitialized();
 	}
 }
