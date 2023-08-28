@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ToDoApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionstring = builder.Configuration.GetConnectionString("Default")
+var connectionstring = builder.Configuration.GetConnectionString("new")
 	?? throw new NullReferenceException("no connection string in config!");
 
 // Add services to the container.
